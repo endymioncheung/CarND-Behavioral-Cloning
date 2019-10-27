@@ -52,28 +52,14 @@ from keras import __version__ as keras_version
 
 import cv2
 
+from utils import *
+
 
 # In[4]:
 
 
 # Show Keras version using
 print('Using Keras version: {}'.format(keras_version))
-
-
-# In[ ]:
-
-
-def crop(img):
-    '''
-    Crop out non-road sections of the image - the top (sky) and the bottom (engine cover)
-    '''
-    return img[60:-25,:,:]
-
-def resize(img,width=200,height=66):
-    '''
-    Resize the image to the input shape used by the convolution neural network model
-    '''
-    return cv2.resize(img,(width,height),cv2.INTER_AREA)
 
 
 # In[5]:
@@ -117,22 +103,23 @@ def telemetry(sid, data):
     if data:
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
-
+        
         # The current throttle of the car
         throttle = data["throttle"]
-
+        
         # The current speed of the car
         speed = data["speed"]
-
+        
         # The current image from the center camera of the car
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-
+        
+        # from utils.py
         # Preprocess the image
         image_array = crop(image_array)
         image_array = resize(image_array)
-
+        
         # Predict the steering angle based on the image
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
 
@@ -155,7 +142,7 @@ def telemetry(sid, data):
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
-
+    
     # Send zero steering angle and throttle
     # upon connection
     send_control(0, 0)
@@ -168,7 +155,6 @@ def send_control(steering_angle, throttle):
             'throttle': throttle.__str__()
         },
         skip_sid=True)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Remote Driving')
@@ -213,3 +199,4 @@ if __name__ == '__main__':
 
     # deploy as an eventlet WSGI server
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
+
