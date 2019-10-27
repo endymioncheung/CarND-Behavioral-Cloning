@@ -109,7 +109,7 @@ class SimplePIController:
         return self.Kp * self.error + self.Ki * self.integral
 
 controller = SimplePIController(0.1, 0.002)
-set_speed = 9 # speed in the unit of mph
+set_speed = 30 # speed in the unit of mph
 controller.set_desired(set_speed)
 
 @sio.on('telemetry')
@@ -117,22 +117,22 @@ def telemetry(sid, data):
     if data:
         # The current steering angle of the car
         steering_angle = data["steering_angle"]
-        
+
         # The current throttle of the car
         throttle = data["throttle"]
-        
+
         # The current speed of the car
         speed = data["speed"]
-        
+
         # The current image from the center camera of the car
         imgString = data["image"]
         image = Image.open(BytesIO(base64.b64decode(imgString)))
         image_array = np.asarray(image)
-        
+
         # Preprocess the image
         image_array = crop(image_array)
         image_array = resize(image_array)
-        
+
         # Predict the steering angle based on the image
         steering_angle = float(model.predict(image_array[None, :, :, :], batch_size=1))
 
@@ -155,7 +155,7 @@ def telemetry(sid, data):
 @sio.on('connect')
 def connect(sid, environ):
     print("connect ", sid)
-    
+
     # Send zero steering angle and throttle
     # upon connection
     send_control(0, 0)
@@ -213,4 +213,3 @@ if __name__ == '__main__':
 
     # deploy as an eventlet WSGI server
     eventlet.wsgi.server(eventlet.listen(('', 4567)), app)
-
