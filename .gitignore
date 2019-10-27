@@ -2,3 +2,4 @@
 .ipynb_checkpoints
 checkpoint
 /node_modules
+/__pycache__
